@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>热门电影推荐</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f0f12;
+            --bg-card: #1a1a1f;
+            --bg-card-hover: #222228;
+            --accent: #e50914;
+            --accent-soft: rgba(229, 9, 20, 0.15);
+            --text-primary: #f5f5f7;
+            --text-secondary: #a1a1a6;
+            --border: #2d2d35;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* 背景装饰 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 400px;
+            background: radial-gradient(ellipse at 50% 0%, var(--accent-soft) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 标题区 */
+        header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 400;
+        }
+
+        /* 搜索与筛选 */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 40px;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 240px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px 20px 14px 48px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        .search-box::before {
+            content: '🔍';
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.1rem;
+        }
+
+        .category-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .category-btn {
+            padding: 10px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .category-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
+
+        .category-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        /* 电影列表 */
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 28px;
+        }
+
+        .movie-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-6px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .movie-cover {
+            width: 100%;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+            background: var(--border);
+        }
+
+        .movie-info {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .movie-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .movie-rating {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .rating-stars {
+            color: #ffc107;
+            font-size: 1rem;
+        }
+
+        .rating-value {
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .movie-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            flex: 1;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .movie-genre {
+            margin-top: 12px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* 无结果提示 */
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>热门电影推荐</h1>
+            <p class="subtitle">发现值得一看的精彩影片</p>
+        </header>
+
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索电影名称或简介...">
+            </div>
+            <div class="category-tabs">
+                <button class="category-btn active" data-category="全部">全部</button>
+                <button class="category-btn" data-category="动作">动作</button>
+                <button class="category-btn" data-category="科幻">科幻</button>
+                <button class="category-btn" data-category="剧情">剧情</button>
+                <button class="category-btn" data-category="喜剧">喜剧</button>
+                <button class="category-btn" data-category="爱情">爱情</button>
+                <button class="category-btn" data-category="悬疑">悬疑</button>
+            </div>
+        </div>
+
+        <div class="movie-grid" id="movieGrid"></div>
+
+        <div class="no-results" id="noResults" style="display: none;">
+            未找到符合条件的电影，试试其他关键词或类别吧
+        </div>
+    </div>
+
+    <script>
+        const movies = [
+            {
+                title: "流浪地球2",
+                desc: "太阳即将毁灭，人类在地球表面建造出巨大的推进器，寻找新家园。然而宇宙之路危机四伏，为了拯救地球，为了人类能在漫长的2500年后抵达新的家园，流浪地球时代的年轻人再次挺身而出。",
+                rating: 8.3,
+                genre: "科幻",
+                cover: "https://picsum.photos/seed/movie1/400/600"
+            },
+            {
+                title: "满江红",
+                desc: "南宋绍兴年间，岳飞死后四年，秦桧率兵与金国会谈。会谈前夜，金国使者死在宰相驻地，所携密信也不翼而飞。小兵张大与亲兵营副统领孙均机缘巧合被裹挟进这巨大阴谋之中。",
+                rating: 7.2,
+                genre: "剧情",
+                cover: "https://picsum.photos/seed/movie2/400/600"
+            },
+            {
+                title: "瞬息全宇宙",
+                desc: "一位被生活折腾得筋疲力尽的华裔中年女性，意外获得了连接多元宇宙的能力，必须在无数个平行宇宙中，找到拯救世界、拯救家人的方法。",
+                rating: 8.6,
+                genre: "科幻",
+                cover: "https://picsum.photos/seed/movie3/400/600"
+            },
+            {
+                title: "刺杀小说家",
+                desc: "关宁为寻找失踪女儿，接下屠灵委派的任务——刺杀小说家路空文。殊不知小说家笔下的虚幻世界，正在影响现实世界，而路空文笔下的主人公，也拥有着和关宁一样的命运。",
+                rating: 7.4,
+                genre: "动作",
+                cover: "https://picsum.photos/seed/movie4/400/600"
+            },
+            {
+                title: "你好，李焕英",
+                desc: "女儿贾晓玲意外穿越回八十年代，与年轻时的母亲李焕英相遇，二人形影不离，宛如闺蜜。贾晓玲以为可以凭借自己超前的思维，让母亲走上人生巅峰，却没想到一切并非如此简单。",
+                rating: 7.8,
+                genre: "喜剧",
+                cover: "https://picsum.photos/seed/movie5/400/600"
+            },
+            {
+                title: "唐人街探案3",
+                desc: "唐仁、秦风受邀前往东京侦破离奇案件，却陷入一个精心设计的圈套。一场亚洲最强神探之间的较量即将爆笑展开。",
+                rating: 6.5,
+                genre: "喜剧",
+                cover: "https://picsum.photos/seed/movie6/400/600"
+            },
+            {
+                title: "误杀2",
+                desc: "林日朗与妻子阿玲、儿子小虫一直过着清贫但幸福的生活，直到儿子小虫突发意外急需救治，几经周折，走投无路的林日朗为了救儿子决定放手一搏。",
+                rating: 6.9,
+                genre: "悬疑",
+                cover: "https://picsum.photos/seed/movie7/400/600"
+            },
+            {
+                title: "长津湖",
+                desc: "抗美援朝战争第二次战役中的长津湖战役为背景，讲述了一段波澜壮阔的历史。中国人民志愿军第9兵团在极度严酷环境下坚守阵地、奋勇杀敌，为长津湖战役胜利作出重要贡献。",
+                rating: 8.5,
+                genre: "剧情",
+                cover: "https://picsum.photos/seed/movie8/400/600"
+            },
+            {
+                title: "少年的你",
+                desc: "高考前夕，被一场校园意外改变命运的两个少年，如何守护彼此成为想成为的成年人的故事。",
+                rating: 8.2,
+                genre: "剧情",
+                cover: "https://picsum.photos/seed/movie9/400/600"
+            },
+            {
+                title: "你的名字",
+                desc: "在远离大都会的小山村，住着巫女世家出身的高中女孩三叶。而东京的高中男孩泷则过着迷茫的生活。某天，两人互换身体，体验彼此的人生。",
+                rating: 8.9,
+                genre: "爱情",
+                cover: "https://picsum.photos/seed/movie10/400/600"
+            },
+            {
+                title: "怒火·重案",
+                desc: "重案组布网围剿国际毒枭，突然杀出一组蒙面悍匪冷血屠杀警察，更将毒品掠走。重案组督察张崇邦亲睹战友被杀，深入追查发现悍匪首领竟是昔日战友邱刚敖。",
+                rating: 7.5,
+                genre: "动作",
+                cover: "https://picsum.photos/seed/movie11/400/600"
+            },
+            {
+                title: "消失的她",
+                desc: "何非的妻子李木子在结婚周年旅行中离奇消失，在何非苦寻无果之时妻子再次现身，何非却坚持眼前的陌生女人并非妻子，妻子拿出了身份证明进行自证，夫妻二人似乎都有不可告人的秘密。",
+                rating: 6.4,
+                genre: "悬疑",
+                cover: "https://picsum.photos/seed/movie12/400/600"
+            }
+        ];
+
+        function renderStars(rating) {
+            const full = Math.floor(rating / 2);
+            const half = (rating / 2) % 1 >= 0.5 ? 1 : 0;
+            const empty = 5 - full - half;
+            return '★'.repeat(full) + (half ? '☆' : '') + '☆'.repeat(empty);
+        }
+
+        function renderMovies(filteredMovies) {
+            const grid = document.getElementById('movieGrid');
+            const noResults = document.getElementById('noResults');
+
+            grid.innerHTML = '';
+
+            if (filteredMovies.length === 0) {
+                noResults.style.display = 'block';
+                return;
+            }
+
+            noResults.style.display = 'none';
+
+            filteredMovies.forEach(movie => {
+                const card = document.createElement('div');
+                card.className = 'movie-card';
+                card.innerHTML = `
+                    <img src="${movie.cover}" alt="${movie.title}" class="movie-cover" loading="lazy">
+                    <div class="movie-info">
+                        <h3 class="movie-title">${movie.title}</h3>
+                        <div class="movie-rating">
+                            <span class="rating-stars">${renderStars(movie.rating)}</span>
+                            <span class="rating-value">${movie.rating}</span>
+                        </div>
+                        <p class="movie-desc">${movie.desc}</p>
+                        <span class="movie-genre">${movie.genre}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterMovies() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            const activeCategory = document.querySelector('.category-btn.active').dataset.category;
+
+            const filtered = movies.filter(movie => {
+                const matchSearch = !searchTerm || 
+                    movie.title.toLowerCase().includes(searchTerm) || 
+                    movie.desc.toLowerCase().includes(searchTerm) ||
+                    movie.genre.toLowerCase().includes(searchTerm);
+                
+                const matchCategory = activeCategory === '全部' || movie.genre === activeCategory;
+
+                return matchSearch && matchCategory;
+            });
+
+            renderMovies(filtered);
+        }
+
+        // 初始化
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                filterMovies();
+            });
+        });
+
+        document.getElementById('searchInput').addEventListener('input', filterMovies);
+
+        renderMovies(movies);
+    </script>
+</body>
+</html>
